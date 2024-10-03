@@ -3,5 +3,6 @@
 #
 
 from .source import SourceKlaviyo
+from .custom_authenticators import DeclarativeKlaviyoOauth2Authenticator
 
-__all__ = ["SourceKlaviyo"]
+__all__ = ["SourceKlaviyo", "DeclarativeKlaviyoOauth2Authenticator"]

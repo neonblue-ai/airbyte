@@ -38,9 +38,10 @@ class KlaviyoStream(HttpStream, CheckpointMixin, ABC):
     def state(self, value):
         self._state = value
 
-    def __init__(self, api_key: str, start_date: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self, api_key: Optional[str] = None, start_date: Optional[str] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._api_key = api_key
+        self._extra_headers = { "Authorization": f"Klaviyo-API-Key {self._api_key}" } if self._api_key else {}
         self._start_ts = start_date
         if not hasattr(self, "_state"):
             self._state = {}
@@ -53,7 +54,7 @@ class KlaviyoStream(HttpStream, CheckpointMixin, ABC):
         return {
             "Accept": "application/json",
             "Revision": self.api_revision,
-            "Authorization": f"Klaviyo-API-Key {self._api_key}",
+            **self._extra_headers,
         }
 
     def next_page_token(self, response: Response) -> Optional[Mapping[str, Any]]:

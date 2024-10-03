@@ -40,7 +40,7 @@ def test_check_connection(requests_mock, status_code, is_connection_successful, 
         json={"end": 1, "total": 1} if 200 >= status_code < 300 else {},
     )
     source = SourceKlaviyo()
-    success, error = source.check_connection(logger=logger, config={"api_key": "api_key"})
+    success, error = source.check_connection(logger=logger, config={"credentials":{"auth_type":"api_key","api_key":"an_api_key"}})
     assert success is is_connection_successful
     assert error == error_msg
 
@@ -49,7 +49,7 @@ def test_check_connection_unexpected_error(requests_mock):
     exception_info = "Something went wrong"
     requests_mock.register_uri("GET", "https://a.klaviyo.com/api/metrics", exc=Exception(exception_info))
     source = SourceKlaviyo()
-    success, error = source.check_connection(logger=logger, config={"api_key": "api_key"})
+    success, error = source.check_connection(logger=logger, config={"credentials":{"auth_type":"api_key","api_key":"an_api_key"}})
     assert success is False
     assert error == f"Unable to connect to stream metrics - {exception_info}"
 

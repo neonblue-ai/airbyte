@@ -3,13 +3,26 @@ type: DeclarativeSource
 
 definitions:
   # Authenticator
-  authenticator:
+  api_key_authenticator:
     type: ApiKeyAuthenticator
-    api_token: "Klaviyo-API-Key {{ config['api_key'] }}"
+    api_token: "Klaviyo-API-Key {{ config['credentials']['api_key'] }}"
     inject_into:
       type: RequestOption
       field_name: "Authorization"
       inject_into: header
+  oauth_authenticator:
+    type: "CustomAuthenticator"
+    class_name: "source_klaviyo.custom_authenticators.DeclarativeKlaviyoOauth2Authenticator"
+    token_refresh_endpoint: "https://a.klaviyo.com/oauth/token"
+    client_id: "{{ config['credentials']['client_id'] }}"
+    client_secret: "{{ config['credentials']['client_secret'] }}"
+    refresh_token: "{{ config['credentials']['refresh_token'] }}"
+  authenticator:
+    type: SelectiveAuthenticator
+    authenticator_selection_path: ["credentials", "auth_type"]
+    authenticators:
+      oauth: "#/definitions/oauth_authenticator"
+      api_key: "#/definitions/api_key_authenticator"
 
   # Requester
   requester:
@@ -929,11 +942,52 @@ spec:
     title: "Klaviyo Spec"
     type: object
     properties:
-      api_key:
-        type: string
-        title: "Api Key"
-        description: 'Klaviyo API Key. See our <a href="https://docs.airbyte.com/integrations/sources/klaviyo">docs</a> if you need help finding this key.'
-        airbyte_secret: true
+      credentials:
+        title: Authorization Method
+        type: object
+        oneOf:
+          - type: object
+            title: OAuth Refresh Token
+            required:
+              - auth_type
+              - client_id
+              - client_secret
+              - refresh_token
+            properties:
+              auth_type:
+                type: string
+                const: oauth
+                order: 0
+              client_id:
+                type: string
+                title: Client ID
+                description: Klaviyo OAuth client ID.
+                airbyte_secret: true
+              client_secret:
+                type: string
+                title: Client Secret
+                description: Klaviyo OAuth client secret.
+                airbyte_secret: true
+              refresh_token:
+                type: string
+                title: Refresh Token
+                description: Klaviyo OAuth refresh token.
+                airbyte_secret: true
+          - type: object
+            title: API Key
+            required:
+              - auth_type
+              - api_key
+            properties:
+              auth_type:
+                type: string
+                const: api_key
+                order: 0
+              api_key:
+                type: string
+                title: API Key
+                description: 'Klaviyo API Key. See our <a href="https://docs.airbyte.com/integrations/sources/klaviyo">docs</a> if you need help finding this key.'
+                airbyte_secret: true
         order: 0
       start_date:
         type: string
@@ -952,4 +1006,3 @@ spec:
           be improved by not fetching this field. WARNING: Enabling this setting will stop the 
           "predictive_analytics" column from being populated in your downstream destination.
         order: 2
-    required: ["api_key"]
