@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# Array of connectors to publish
+CONNECTORS=("source-klaviyo")
+
 # Configuration
-REMOTE_HOST="nbservices"  # Set the remote host here
+REMOTE_HOST="nbservices" # Neon Blue Airbyte host
 
 # Function to check for a clean working branch
 check_clean_branch() {
@@ -124,9 +127,6 @@ check_correct_branch() {
         echo "Confirmed: On the correct branch ($required_branch)."
     fi
 }
-
-# Array of connectors to publish
-CONNECTORS=("source-klaviyo")  # Add more connectors here as needed
 
 # Check if we're in a git repository
 check_git_repo
